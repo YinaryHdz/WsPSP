@@ -6,57 +6,78 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Scanner;
 
 public class Hijo {
-	static Scanner sc = new Scanner(System.in);
-	public static void main(String[] args) {
-		ejecutarProcesoHijo();
-		ejecutarProcesoHijo();
-		ejecutarProcesoHijo();
-		
 
-	}
-	
-	private static double leerYSumar(String rutaArchivo) {
-		double total = 0;
-		try (BufferedReader bf = new BufferedReader(new FileReader(rutaArchivo))) {
-			String linea = "";
-			while((linea = bf.readLine()) != null) {
-				try {
-					total += Double.parseDouble(linea.trim());//Sumo las lineas del archivo
-				} catch (NumberFormatException e) {
-					System.err.println("Error en la linea " + linea);
-				}
-			}
-		} catch (IOException e) {
-			System.out.println("Error al leer el archivo de entrada");
-		}
-		return total;
-	}
+    public static void main(String[] args) {
+        // Verificam si se ha proporcionado la ruta del archivo de entrada
+        if (args.length < 1) {
+            System.err.println("Error: No se proporcionó la ruta del archivo de entrada.");
+            return; // Si no se proporciona la ruta, termina el proceso
+        }
 
-	private static void escribirResultado(String rutaSalida, Double total ) {
-		String salida = "salida_ " +new File(rutaSalida).getName();
-		try (BufferedWriter bw = new BufferedWriter(new FileWriter(salida))){
-			bw.write("Total: " + total);
-			System.out.println("Resultado escrito de manera correcta en: " + salida);
-		} catch (IOException e) {
-			System.err.println("Error al escribir en el archivo de salida");
-		}
-		
-	}
-	
-	private static void ejecutarProcesoHijo() {
-		System.out.println("Introduce la ruta del fichero donde desea trabajar");
-		String entrada = sc.nextLine();
-		double total = leerYSumar(entrada);
-		
-		System.out.println("Introduce la ruta del archivo donde desea visualizar la salida");
-		String salida = sc.nextLine();
-		if (total != -1) {
-			escribirResultado(salida,total);
-		}
-		System.out.println("Proceso hijo terminado de manera correcta");
-	}
+        String entrada = args[0]; // Obtiene la ruta del archivo de entrada desde los argumentos
+        File archivoEntrada = new File(entrada); // Crea un objeto File con la ruta proporcionada
 
+        // Verificamos si el archivo existe y es un archivo válido
+        if (!archivoEntrada.exists() || !archivoEntrada.isFile()) {
+            System.err.println("Error: El archivo \"" + entrada + "\" no existe o no es válido.");
+            return; // Si el archivo no es válido, termina el proceso
+        }
+
+        System.out.println("Procesando archivo de entrada: " + entrada);
+
+        double total;
+        try {
+            // Llamamos al método leerYSumar para procesar el archivo de entrada y obtener la suma
+            total = leerYSumar(entrada);
+        } catch (IOException e) {
+            System.err.println("Error: No se pudo leer el archivo \"" + entrada + "\".");
+            return; // Si ocurre un error leyendo el archivo, termina el proceso
+        }
+
+        // Genera el nombre del archivo de salida basado en el nombre del archivo de entrada
+        String salida = generarNombreSalida(entrada);
+
+        try {
+            // Llamamos al método escribirResultado para guardar el resultado en un archivo de salida
+            escribirResultado(salida, total);
+            System.out.println("Proceso hijo terminado correctamente. Archivo de salida: " + salida);
+        } catch (IOException e) {
+            System.err.println("Error: No se pudo escribir en el archivo \"" + salida + "\".");
+        }
+    }
+
+    // Método que lee el archivo y suma los números encontrados en cada línea
+    private static double leerYSumar(String rutaArchivo) throws IOException {
+        double total = 0;
+        //BufferedReader para leer el archivo línea por línea
+        try (BufferedReader bf = new BufferedReader(new FileReader(rutaArchivo))) {
+            String linea;
+            while ((linea = bf.readLine()) != null) {
+                try {
+                    // Intenta parsear cada línea a un número decimal y lo suma al total
+                    total += Double.parseDouble(linea.trim());
+                } catch (NumberFormatException e) {
+                    // Si la línea no es un número válido, se ignora y se muestra una advertencia
+                    System.err.println("Advertencia: La línea \"" + linea + "\" no es numérica y será ignorada.");
+                }
+            }
+        }
+        return total; 
+    }
+
+    // Método que escribe el resultado en el archivo de salida
+    private static void escribirResultado(String rutaSalida, Double total) throws IOException {
+        //BufferedWriter para escribir el resultado en el archivo de salida
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(rutaSalida))) {
+            bw.write("Total: " + total); // Escribe el resultado de la suma
+            System.out.println("Resultado escrito correctamente en: " + rutaSalida);
+        }
+    }
+
+    // Método que genera un nombre de archivo de salida basado en el nombre del archivo de entrada
+    private static String generarNombreSalida(String rutaEntrada) {
+        return "salida_" + new File(rutaEntrada).getName(); // Prefijo "salida_" + nombre del archivo original
+    }
 }
